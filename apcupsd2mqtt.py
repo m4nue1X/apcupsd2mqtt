@@ -6,23 +6,140 @@ import re
 import json
 import paho.mqtt.publish as mqtt_publish
 
-def main():
-    arg_parser = argparse.ArgumentParser(prog="apcupsd2mqtt", description="Polls data from apcupsd and publishes it to an MQTT server as JSON")
-    arg_parser.add_argument("--apcupsd_host", action="store", default="localhost")
-    arg_parser.add_argument("--apcupsd_port", action="store", default="3551", type=int)
-    arg_parser.add_argument("--mqtt_host", action="store", default="localhost")
-    arg_parser.add_argument("--mqtt_port", action="store", default="1883", type=int)
-    arg_parser.add_argument("--mqtt_client_id", action="store")
-    arg_parser.add_argument("--mqtt_user", action="store")
-    arg_parser.add_argument("--mqtt_password", action="store")
-    arg_parser.add_argument("--mqtt_tls_cacert", action="store")
-    arg_parser.add_argument("--mqtt_tls_cert", action="store")
-    arg_parser.add_argument("--mqtt_tls_key", action="store")
-    arg_parser.add_argument("--mqtt_transport", action="store", default="tcp")
-    arg_parser.add_argument("--mqtt_topic", action="store", required=True)
-    args = arg_parser.parse_args()
+def get_sensor_config(field_name, discovery_prefix, node_id, topic):
+    name = field_name.lower()
+    config_topic = discovery_prefix + "/sensor/" + node_id + "-" + name + "/config"
+    config = {}
+    if name == "status":
+        config["device_class"] = "enum"
+        config["name"] = node_id + " status"
+        config["state_topic"] = topic
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "linev":
+        config["device_class"] = "voltage"
+        config["name"] = node_id + " line voltage"
+        config["state_topic"] = topic
+        config["unit_of_measurement"] = "V"
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "loadpct":
+        config["name"] = node_id + " load percentage"
+        config["state_topic"] = topic
+        config["unit_of_measurement"] = "%"
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "bcharge":
+        config["device_class"] = "battery"
+        config["name"] = node_id + " battery charge"
+        config["state_topic"] = topic
+        config["unit_of_measurement"] = "%"
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "timeleft":
+        config["name"] = node_id + " time left"
+        config["state_topic"] = topic
+        config["unit_of_measurement"] = "minutes",
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "mbattchg":
+        config["name"] = node_id + " shutdown at battery percentage"
+        config["state_topic"] = topic
+        config["unit_of_measurement"] = "%"
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "mintimel":
+        config["name"] = node_id + " shutdown at remaining time"
+        config["state_topic"] = topic
+        config["unit_of_measurement"] = "minutes",
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "sense":
+        config["device_class"] = "enum"
+        config["name"] = node_id + " sensitivity"
+        config["state_topic"] = topic
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "lotrans":
+        config["device_class"] = "voltage"
+        config["name"] = node_id + " low voltage threshold"
+        config["state_topic"] = topic
+        config["unit_of_measurement"] = "V"
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "hitrans":
+        config["device_class"] = "voltage"
+        config["name"] = node_id + " high voltage threshold"
+        config["state_topic"] = topic
+        config["unit_of_measurement"] = "V"
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "battv":
+        config["device_class"] = "voltage"
+        config["name"] = node_id + " battery voltage"
+        config["state_topic"] = topic
+        config["unit_of_measurement"] = "V"
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "lastxfer":
+        config["name"] = node_id + " last transfer reason"
+        config["state_topic"] = topic
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "numxfers":
+        config["name"] = node_id + " number of transfers"
+        config["state_topic"] = topic
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "xonbatt":
+        config["device_class"] = "timestamp"
+        config["name"] = node_id + " last transfer to battery"
+        config["state_topic"] = topic
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "tonbat":
+        config["device_class"] = "duration"
+        config["name"] = node_id + " last duration on battery"
+        config["state_topic"] = topic
+        config["unit_of_measurement"] = "s"
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "cumonbattery":
+        config["device_class"] = "duration"
+        config["name"] = node_id + " total duration on battery"
+        config["state_topic"] = topic
+        config["unit_of_measurement"] = "s"
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "xoffbatt":
+        config["device_class"] = "timestamp"
+        config["name"] = node_id + " last transfer to mains"
+        config["state_topic"] = topic
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "selftest":
+        config["device_class"] = "enum"
+        config["name"] = node_id + " selftest running"
+        config["state_topic"] = topic
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "serialno":
+        config["name"] = node_id + " serial number"
+        config["state_topic"] = topic
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "nominv":
+        config["device_class"] = "voltage"
+        config["name"] = node_id + " nominal voltage"
+        config["state_topic"] = topic
+        config["unit_of_measurement"] = "V"
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "nombattv":
+        config["device_class"] = "voltage"
+        config["name"] = node_id + " nominal battery voltage"
+        config["state_topic"] = topic
+        config["unit_of_measurement"] = "V"
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "nompower":
+        config["device_class"] = "power"
+        config["name"] = node_id + " nominal power"
+        config["state_topic"] = topic
+        config["unit_of_measurement"] = "W"
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    elif name ==  "currpwr_calc":
+        config["device_class"] = "power"
+        config["name"] = node_id + " current power consumption load (calculated)"
+        config["state_topic"] = topic
+        config["unit_of_measurement"] = "W"
+        config["value_template"] = "{{ value_json." + field_name + " }}"
+    if len(config) > 0:
+        return config_topic, config
+    return None, None
+
+def read_data(hostname, port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((args.apcupsd_host, args.apcupsd_port))
+        s.connect((hostname, port))
         status_str = "status".encode('ascii')
         s.send(len(status_str).to_bytes(2, 'big'))
         s.send(status_str)
@@ -38,28 +155,75 @@ def main():
                 data[name_value_match.group(1)] = {'value': float(value_unit_match.group(1)), 'unit': value_unit_match.group(2)}
             else:
                 data[name_value_match.group(1)] = name_value_match.group(2)
-        mqtt_auth = None
-        if args.mqtt_user:
-            mqtt_auth = {}
-            mqtt_auth["username"] = args.mqtt_user
-            mqtt_auth["password"] = args.mqtt_password
-        mqtt_tls = None
-        if args.mqtt_tls_cacert:
-            mqtt_tls = {}
-            mqtt_tls["ca_certs"] = args.mqtt_tls_cacert
-            if args.mqtt_tls_cert:
-                mqtt_tls["certfile"] = args.mqtt_tls_cert
-                mqtt_tls["keyfile"] = args.mqtt_tls_key
-        mqtt_publish.single(
-            topic=args.mqtt_topic,
-            payload=json.dumps(data, indent=2),
-            retain=True,
-            hostname=args.mqtt_host,
-            port=args.mqtt_port,
-            client_id=args.mqtt_client_id,
-            auth=mqtt_auth,
-            tls=mqtt_tls,
-            transport=args.mqtt_transport)
+        return data
+    return None
+
+def publish(hostname, port, client_id, username, password, tls_cacert, tls_cert, tls_key, transport, messages):
+    mqtt_auth = None
+    if username:
+        mqtt_auth = {}
+        mqtt_auth["username"] = username
+        mqtt_auth["password"] = password
+    mqtt_tls = None
+    if tls_cacert:
+        mqtt_tls = {}
+        mqtt_tls["ca_certs"] = tls_cacert
+        if tls_cert:
+            mqtt_tls["certfile"] = tls_cert
+            mqtt_tls["keyfile"] = tls_key
+    mqtt_publish.multiple(
+        messages,
+        hostname=hostname,
+        port=port,
+        client_id=client_id,
+        auth=mqtt_auth,
+        tls=mqtt_tls,
+        transport=transport)
+
+def calc_power(data):
+    if data["NOMPOWER"] and data["LOADPCT"]:
+        return data["NOMPOWER"]["value"] * data["LOADPCT"]["value"] / 100
+    return -1
+
+def main():
+    arg_parser = argparse.ArgumentParser(prog="apcupsd2mqtt", description="Polls data from apcupsd and publishes it to an MQTT server as JSON")
+    arg_parser.add_argument("--apcupsd_host", action="store", default="localhost")
+    arg_parser.add_argument("--apcupsd_port", action="store", default="3551", type=int)
+    arg_parser.add_argument("--mqtt_host", action="store", default="localhost")
+    arg_parser.add_argument("--mqtt_port", action="store", default="1883", type=int)
+    arg_parser.add_argument("--mqtt_client_id", action="store")
+    arg_parser.add_argument("--mqtt_user", action="store")
+    arg_parser.add_argument("--mqtt_password", action="store")
+    arg_parser.add_argument("--mqtt_tls_cacert", action="store")
+    arg_parser.add_argument("--mqtt_tls_cert", action="store")
+    arg_parser.add_argument("--mqtt_tls_key", action="store")
+    arg_parser.add_argument("--mqtt_transport", action="store", default="tcp")
+    arg_parser.add_argument("--mqtt_topic", action="store", required=True)
+    arg_parser.add_argument("--hass_config", action="store", default=False)
+    arg_parser.add_argument("--hass_discovery_prefix", action="store", default="homeassistant")
+    arg_parser.add_argument("--hass_node_id", action="store", default="apcupsd")
+    arg_parser.add_argument("--calculate_power", action="store", default=True)
+    args = arg_parser.parse_args()
+
+    data = read_data(args.apcupsd_host, args.apcupsd_port)
+    if args.calculate_power:
+        data["currpwr_calc"] = { "value": calc_power(data), "unit": "Watts" }
+    messages = []
+    data_msg = {}
+    data_msg["topic"] = args.mqtt_topic
+    data_msg["retain"] = True
+    data_msg["payload"] = json.dumps(data, indent=2)
+    messages.append(data_msg)
+    if args.hass_config:
+        for key in data:
+            topic_name, config = get_sensor_config(key, args.hass_discovery_prefix, args.hass_node_id, args.mqtt_topic)
+            if topic_name:
+                config_msg = {}
+                config_msg["topic"] = topic_name
+                config_msg["retain"] = True
+                config_msg["payload"] = json.dumps(config, indent=2)
+                messages.append(config_msg)
+    publish(args.mqtt_host, args.mqtt_port, args.mqtt_client_id, args.mqtt_user, args.mqtt_password, args.mqtt_tls_cacert, args.mqtt_tls_cert, args.mqtt_tls_key, args.mqtt_transport, messages)
 
 if __name__ == "__main__":
     main()
