@@ -38,7 +38,7 @@ def get_sensor_config(field_name, field_value, discovery_prefix, node_id, topic)
         config["name"] = node_id + " time left"
         config["device_class"] = "duration"
         config["state_topic"] = topic
-        config["unit_of_measurement"] = "min",
+        config["unit_of_measurement"] = "min"
         config["value_template"] = value_template
     elif name ==  "mbattchg":
         config["name"] = node_id + " shutdown at battery percentage"
@@ -49,7 +49,7 @@ def get_sensor_config(field_name, field_value, discovery_prefix, node_id, topic)
         config["name"] = node_id + " shutdown at remaining time"
         config["device_class"] = "duration"
         config["state_topic"] = topic
-        config["unit_of_measurement"] = "min",
+        config["unit_of_measurement"] = "min"
         config["value_template"] = value_template
     elif name ==  "sense":
         config["device_class"] = "enum"
