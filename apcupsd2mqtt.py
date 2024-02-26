@@ -7,133 +7,133 @@ import json
 from datetime import datetime
 import paho.mqtt.publish as mqtt_publish
 
-def get_sensor_config(field_name, field_value, discovery_prefix, node_id, topic):
+def get_sensor_config(field_name, field_value, discovery_prefix, node_id, node_name, topic):
     name = field_name.lower()
     config_topic = discovery_prefix + "/sensor/" + node_id + "-" + name + "/config"
     value_template = "{{ value_json." + field_name + ".value }}" if isinstance(field_value, dict) else "{{ value_json." + field_name + " }}"
     config = {}
     if name == "status":
         config["device_class"] = "enum"
-        config["name"] = node_id + " status"
+        config["name"] = node_name + " status"
         config["state_topic"] = topic
         config["value_template"] = value_template
     elif name ==  "linev":
         config["device_class"] = "voltage"
-        config["name"] = node_id + " line voltage"
+        config["name"] = node_name + " line voltage"
         config["state_topic"] = topic
         config["unit_of_measurement"] = "V"
         config["value_template"] = value_template
     elif name ==  "loadpct":
-        config["name"] = node_id + " load percentage"
+        config["name"] = node_name + " load percentage"
         config["state_topic"] = topic
         config["unit_of_measurement"] = "%"
         config["value_template"] = value_template
     elif name ==  "bcharge":
         config["device_class"] = "battery"
-        config["name"] = node_id + " battery charge"
+        config["name"] = node_name + " battery charge"
         config["state_topic"] = topic
         config["unit_of_measurement"] = "%"
         config["value_template"] = value_template
     elif name ==  "timeleft":
-        config["name"] = node_id + " time left"
+        config["name"] = node_name + " time left"
         config["device_class"] = "duration"
         config["state_topic"] = topic
         config["unit_of_measurement"] = "min"
         config["value_template"] = value_template
     elif name ==  "mbattchg":
-        config["name"] = node_id + " shutdown at battery percentage"
+        config["name"] = node_name + " shutdown at battery percentage"
         config["state_topic"] = topic
         config["unit_of_measurement"] = "%"
         config["value_template"] = value_template
     elif name ==  "mintimel":
-        config["name"] = node_id + " shutdown at remaining time"
+        config["name"] = node_name + " shutdown at remaining time"
         config["device_class"] = "duration"
         config["state_topic"] = topic
         config["unit_of_measurement"] = "min"
         config["value_template"] = value_template
     elif name ==  "sense":
         config["device_class"] = "enum"
-        config["name"] = node_id + " sensitivity"
+        config["name"] = node_name + " sensitivity"
         config["state_topic"] = topic
         config["value_template"] = value_template
     elif name ==  "lotrans":
         config["device_class"] = "voltage"
-        config["name"] = node_id + " low voltage threshold"
+        config["name"] = node_name + " low voltage threshold"
         config["state_topic"] = topic
         config["unit_of_measurement"] = "V"
         config["value_template"] = value_template
     elif name ==  "hitrans":
         config["device_class"] = "voltage"
-        config["name"] = node_id + " high voltage threshold"
+        config["name"] = node_name + " high voltage threshold"
         config["state_topic"] = topic
         config["unit_of_measurement"] = "V"
         config["value_template"] = value_template
     elif name ==  "battv":
         config["device_class"] = "voltage"
-        config["name"] = node_id + " battery voltage"
+        config["name"] = node_name + " battery voltage"
         config["state_topic"] = topic
         config["unit_of_measurement"] = "V"
         config["value_template"] = value_template
     elif name ==  "lastxfer":
-        config["name"] = node_id + " last transfer reason"
+        config["name"] = node_name + " last transfer reason"
         config["state_topic"] = topic
         config["value_template"] = value_template
     elif name ==  "numxfers":
-        config["name"] = node_id + " number of transfers"
+        config["name"] = node_name + " number of transfers"
         config["state_topic"] = topic
         config["value_template"] = value_template
     elif name ==  "xonbatt":
         config["device_class"] = "timestamp"
-        config["name"] = node_id + " last transfer to battery"
+        config["name"] = node_name + " last transfer to battery"
         config["state_topic"] = topic
         config["value_template"] = value_template
     elif name ==  "tonbatt":
         config["device_class"] = "duration"
-        config["name"] = node_id + " last duration on battery"
+        config["name"] = node_name + " last duration on battery"
         config["state_topic"] = topic
         config["unit_of_measurement"] = "s"
         config["value_template"] = value_template
     elif name ==  "cumonbatt":
         config["device_class"] = "duration"
-        config["name"] = node_id + " total duration on battery"
+        config["name"] = node_name + " total duration on battery"
         config["state_topic"] = topic
         config["unit_of_measurement"] = "s"
         config["value_template"] = value_template
     elif name ==  "xoffbatt":
         config["device_class"] = "timestamp"
-        config["name"] = node_id + " last transfer to mains"
+        config["name"] = node_name + " last transfer to mains"
         config["state_topic"] = topic
         config["value_template"] = value_template
     elif name ==  "selftest":
         config["device_class"] = "enum"
-        config["name"] = node_id + " selftest running"
+        config["name"] = node_name + " selftest running"
         config["state_topic"] = topic
         config["value_template"] = value_template
     elif name ==  "serialno":
-        config["name"] = node_id + " serial number"
+        config["name"] = node_name + " serial number"
         config["state_topic"] = topic
         config["value_template"] = value_template
     elif name ==  "nominv":
         config["device_class"] = "voltage"
-        config["name"] = node_id + " nominal voltage"
+        config["name"] = node_name + " nominal voltage"
         config["state_topic"] = topic
         config["unit_of_measurement"] = "V"
         config["value_template"] = value_template
     elif name ==  "nombattv":
         config["device_class"] = "voltage"
-        config["name"] = node_id + " nominal battery voltage"
+        config["name"] = node_name + " nominal battery voltage"
         config["state_topic"] = topic
         config["unit_of_measurement"] = "V"
         config["value_template"] = value_template
     elif name ==  "nompower":
         config["device_class"] = "power"
-        config["name"] = node_id + " nominal power"
+        config["name"] = node_name + " nominal power"
         config["state_topic"] = topic
         config["unit_of_measurement"] = "W"
         config["value_template"] = value_template
     elif name ==  "currpwr_calc":
         config["device_class"] = "power"
-        config["name"] = node_id + " current power consumption load (calculated)"
+        config["name"] = node_name + " current power consumption load (calculated)"
         config["state_topic"] = topic
         config["unit_of_measurement"] = "W"
         config["value_template"] = value_template
@@ -142,7 +142,10 @@ def get_sensor_config(field_name, field_value, discovery_prefix, node_id, topic)
     return None, None
 
 def date_time_to_iso(value):
-    return datetime.strptime(value.strip(), "%Y-%m-%d %H:%M:%S %z").isoformat()
+    try:
+        return datetime.strptime(value.strip(), "%Y-%m-%d %H:%M:%S %z").isoformat()
+    except:
+        return None
 
 def fix_date_time(data):
     for key in data:
@@ -216,6 +219,7 @@ def main():
     arg_parser.add_argument("--hass_config", action="store_true", default=False)
     arg_parser.add_argument("--hass_discovery_prefix", action="store", default="homeassistant")
     arg_parser.add_argument("--hass_node_id", action="store", default="UPS")
+    arg_parser.add_argument("--hass_node_name", action="store", default="UPS")
     arg_parser.add_argument("--calculate_power", action="store_true", default=True)
     arg_parser.add_argument("--date_time_iso", action="store_true", default=True)
     arg_parser.add_argument("--dry_run", action="store_true", default=False)
@@ -234,7 +238,7 @@ def main():
     messages.append(data_msg)
     if args.hass_config:
         for key in data:
-            topic_name, config = get_sensor_config(key, data[key], args.hass_discovery_prefix, args.hass_node_id, args.mqtt_topic)
+            topic_name, config = get_sensor_config(key, data[key], args.hass_discovery_prefix, args.hass_node_id, args.hass_node_name, args.mqtt_topic)
             if topic_name:
                 config_msg = {}
                 config_msg["topic"] = topic_name
